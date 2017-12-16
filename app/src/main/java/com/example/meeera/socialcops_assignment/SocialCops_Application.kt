@@ -8,12 +8,17 @@ import com.danikula.videocache.HttpProxyCacheServer
  * Created by meeera on 16/12/17.
  */
 class SocialCops_Application : Application() {
+
     private var cacheServer: HttpProxyCacheServer? = null
     companion object {
         var application: SocialCops_Application ?= null
         fun getCacheServer(context: Context): HttpProxyCacheServer {
             if (application?.cacheServer == null) application?.cacheServer = application?.buildHttpCacheServer()
             return application?.cacheServer as HttpProxyCacheServer
+        }
+        @Synchronized
+        fun getInstance(): SocialCops_Application? {
+            return application
         }
     }
 
