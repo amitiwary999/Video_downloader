@@ -12,7 +12,7 @@ class SocialCops_Application : Application() {
     private var cacheServer: HttpProxyCacheServer? = null
     companion object {
         var application: SocialCops_Application ?= null
-        fun getCacheServer(context: Context): HttpProxyCacheServer {
+        fun getCacheServer(): HttpProxyCacheServer {
             if (application?.cacheServer == null) application?.cacheServer = application?.buildHttpCacheServer()
             return application?.cacheServer as HttpProxyCacheServer
         }
