@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     var proxyVideoUrl : String ?= null
     var player : SimpleExoPlayer ?= null
     var proxyCacheServer : HttpProxyCacheServer ?= null
-   // var position : Long = 0
+    var position : Long = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -43,6 +43,12 @@ class MainActivity : AppCompatActivity() {
             proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
             start()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        player?.playWhenReady = true
+        player?.seekTo(position)
     }
 
     override fun onStart() {
@@ -73,7 +79,7 @@ class MainActivity : AppCompatActivity() {
     fun preparePlayer(){
         val bandwidthMeter = DefaultBandwidthMeter()
         val dataSourceFactory = DefaultDataSourceFactory(this,
-                Util.getUserAgent(this, "OfflinePlayer"), bandwidthMeter)
+                Util.getUserAgent(this, "SOCIALCOPS"), bandwidthMeter)
         val extractorsFactory = DefaultExtractorsFactory()
         val videoSource = ExtractorMediaSource(Uri.parse(proxyVideoUrl),
                 dataSourceFactory, extractorsFactory, null, null)
@@ -120,6 +126,14 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if(player?.playWhenReady.toString().toBoolean()) {
+            position = player?.currentPosition.toString().toLong()
+            player?.playWhenReady = false
+        }
     }
 
     override fun onStop() {
