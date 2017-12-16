@@ -1,8 +1,11 @@
 package com.example.meeera.socialcops_assignment
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import com.danikula.videocache.HttpProxyCacheServer
 import com.google.android.exoplayer2.*
@@ -22,20 +25,40 @@ class MainActivity : AppCompatActivity() {
     var videoUrl : String ?= null
     var proxyVideoUrl : String ?= null
     var player : SimpleExoPlayer ?= null
-    var position : Long = 0
+    var proxyCacheServer : HttpProxyCacheServer ?= null
+   // var position : Long = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        var proxyCacheServer : HttpProxyCacheServer = SocialCops_Application.getCacheServer(this)
+        proxyCacheServer = SocialCops_Application.getCacheServer(this)
         videoUrl = resources.getString(R.string.video_url)
-        proxyVideoUrl = proxyCacheServer.getProxyUrl(videoUrl, true)
+        if(!(proxyCacheServer?.isCached(videoUrl).toString().toBoolean())){
+            if(isConnected()){
+                proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
+                start()
+            } else{
+                Toast.makeText(this, resources.getString(R.string.internet_error), Toast.LENGTH_LONG).show()
+            }
+        }else {
+            proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
+            start()
+        }
+       createPlayer()
     }
 
     override fun onStart() {
         super.onStart()
-        createPlayer()
+        if(!(proxyCacheServer?.isCached(videoUrl).toString()).toBoolean()) {
+            if (isConnected()) {
+                start()
+            }
+        } else{
+            start()
+        }
+    }
+
+    fun start(){
         playerView.player = player
-        player?.seekTo(position)
         preparePlayer()
         playerListener()
     }
@@ -44,8 +67,7 @@ class MainActivity : AppCompatActivity() {
         val bandwidthMeter = DefaultBandwidthMeter()
         val videoTrackSelectionFactory = AdaptiveTrackSelection.Factory(bandwidthMeter)
         val trackSelector = DefaultTrackSelector(videoTrackSelectionFactory)
-        val loadControl = DefaultLoadControl()
-        player = ExoPlayerFactory.newSimpleInstance(this, trackSelector, loadControl)
+        player = ExoPlayerFactory.newSimpleInstance(this, trackSelector)
     }
 
     fun preparePlayer(){
@@ -60,43 +82,51 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun playerListener(){
-       /* player?.addListener(object : ExoPlayer.EventListener {
+       player?.addListener(object : Player.EventListener{
             override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-
+                Log.d("amit", "playbackParameters" + playbackParameters)
             }
 
-            override fun onRepeatModeChanged(repeatMode: Int) {
-
-            }
-
-            override fun onTimelineChanged(timeline: Timeline, manifest: Any) {
-
-            }
-
-            override fun onTracksChanged(trackGroups: TrackGroupArray, trackSelections: TrackSelectionArray) {
-
-            }
-
-            override fun onLoadingChanged(isLoading: Boolean) {
-
+            override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
+                Log.d("amit", "trackSelection"+trackSelections)
             }
 
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-
+                Log.d("amit", "state"+ playWhenReady)
             }
 
-            override fun onPlayerError(error: ExoPlaybackException) {
-                Toast.makeText(this@MainActivity, R.string.error, Toast.LENGTH_LONG).show()
+            override fun onLoadingChanged(isLoading: Boolean) {
+                Log.d("amit", "loading"+isLoading)
             }
 
             override fun onPositionDiscontinuity() {
-
+                Log.d("amit", "seeking")
             }
-        })*/
+
+            override fun onRepeatModeChanged(repeatMode: Int) {
+                Log.d("amit", "repeatmode "+repeatMode)
+            }
+
+            override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
+                Log.d("amit", "timeline changed "+ timeline)
+            }
+
+            override fun onPlayerError(error: ExoPlaybackException?) {
+                Toast.makeText(this@MainActivity, R.string.error, Toast.LENGTH_LONG).show()
+            }
+
+        })
     }
 
     override fun onStop() {
         super.onStop()
         player?.release()
+    }
+
+    fun isConnected() : Boolean{
+        val cm = SocialCops_Application.getInstance()?.getApplicationContext()
+                ?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = cm.activeNetworkInfo
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting
     }
 }
