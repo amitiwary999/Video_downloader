@@ -21,16 +21,26 @@ import com.google.android.exoplayer2.util.Util
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        if(savedInstanceState != null){
+            position = savedInstanceState.getString(POSITION).toLong()
+        }else{
+            position = 0
+        }
+        Log.d("amit", "restore "+position )
+    }
 
     var videoUrl : String ?= null
     var proxyVideoUrl : String ?= null
     var player : SimpleExoPlayer ?= null
     var proxyCacheServer : HttpProxyCacheServer ?= null
     var position : Long = 0
+    var POSITION : String = "position_seek"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        proxyCacheServer = SocialCops_Application.getCacheServer(this)
+        proxyCacheServer = SocialCops_Application.getCacheServer()
         videoUrl = resources.getString(R.string.video_url)
         if(!(proxyCacheServer?.isCached(videoUrl).toString().toBoolean())){
             if(isConnected()){
@@ -49,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         player?.playWhenReady = true
         player?.seekTo(position)
+        Log.d("amit", "resume "+position)
     }
 
     override fun onStart() {
@@ -62,21 +73,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun start(){
+    private fun start(){
         createPlayer()
         playerView.player = player
         preparePlayer()
         playerListener()
     }
 
-    fun createPlayer(){
+    private fun createPlayer(){
         val bandwidthMeter = DefaultBandwidthMeter()
         val videoTrackSelectionFactory = AdaptiveTrackSelection.Factory(bandwidthMeter)
         val trackSelector = DefaultTrackSelector(videoTrackSelectionFactory)
         player = ExoPlayerFactory.newSimpleInstance(this, trackSelector)
     }
 
-    fun preparePlayer(){
+    private fun preparePlayer(){
         val bandwidthMeter = DefaultBandwidthMeter()
         val dataSourceFactory = DefaultDataSourceFactory(this,
                 Util.getUserAgent(this, "SOCIALCOPS"), bandwidthMeter)
@@ -87,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         player?.prepare(videoSource)
     }
 
-    fun playerListener(){
+    private fun playerListener(){
        player?.addListener(object : Player.EventListener{
             override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
                 Log.d("amit", "playbackParameters" + playbackParameters)
@@ -128,6 +139,12 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putString(POSITION, player?.currentPosition.toString())
+        Log.d("amit", "savedstate "+player?.currentPosition.toString())
+    }
+
     override fun onPause() {
         super.onPause()
         if(player?.playWhenReady.toString().toBoolean()) {
@@ -141,7 +158,7 @@ class MainActivity : AppCompatActivity() {
         player?.release()
     }
 
-    fun isConnected() : Boolean{
+    private fun isConnected() : Boolean{
         val cm = SocialCops_Application.getInstance()?.getApplicationContext()
                 ?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork = cm.activeNetworkInfo
