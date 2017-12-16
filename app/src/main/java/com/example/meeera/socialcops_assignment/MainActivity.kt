@@ -43,7 +43,6 @@ class MainActivity : AppCompatActivity() {
             proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
             start()
         }
-       createPlayer()
     }
 
     override fun onStart() {
@@ -58,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun start(){
+        createPlayer()
         playerView.player = player
         preparePlayer()
         playerListener()
@@ -92,6 +92,10 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                if(playbackState == Player.STATE_ENDED){
+                    player?.seekTo(0)
+                }
+
                 Log.d("amit", "state"+ playWhenReady)
             }
 
