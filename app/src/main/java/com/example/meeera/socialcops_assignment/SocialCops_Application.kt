@@ -29,7 +29,7 @@ class SocialCops_Application : Application() {
 
     private fun buildHttpCacheServer(): HttpProxyCacheServer {
         return HttpProxyCacheServer.Builder(this)
-                .cacheDirectory(cacheDir)
+                .cacheDirectory(filesDir)
                 .build()
     }
 }

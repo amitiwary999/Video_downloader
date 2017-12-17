@@ -32,17 +32,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         proxyCacheServer = SocialCops_Application.getCacheServer()
         videoUrl = resources.getString(R.string.video_url)
-        if(!(proxyCacheServer?.isCached(videoUrl).toString().toBoolean())){
-            if(isConnected()){
-                proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
-                start()
-            } else{
-                Toast.makeText(this, resources.getString(R.string.internet_error), Toast.LENGTH_LONG).show()
-            }
-        }else {
-            proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
-            start()
-        }
+        proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
     }
 
     override fun onResume() {
@@ -53,13 +43,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        if(!(proxyCacheServer?.isCached(videoUrl).toString()).toBoolean()) {
-            if (isConnected()) {
-                start()
-            }
-        } else{
-            start()
-        }
+        start()
     }
 
     private fun start(){
@@ -123,6 +107,9 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPlayerError(error: ExoPlaybackException?) {
                 Toast.makeText(this@MainActivity, R.string.error, Toast.LENGTH_LONG).show()
+                if(!isConnected()){
+                    Toast.makeText(this@MainActivity, resources.getString(R.string.internet_error), Toast.LENGTH_LONG).show()
+                }
             }
 
         })
