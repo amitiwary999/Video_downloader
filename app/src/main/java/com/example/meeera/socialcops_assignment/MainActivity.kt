@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        proxyCacheServer = SocialCops_Application.getCacheServer(this)
+        proxyCacheServer = SocialCops_Application.getCacheServer()
         videoUrl = resources.getString(R.string.video_url)
         if(!(proxyCacheServer?.isCached(videoUrl).toString().toBoolean())){
             if(isConnected()){
@@ -62,32 +62,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun start(){
+    private fun start(){
         createPlayer()
         playerView.player = player
         preparePlayer()
         playerListener()
     }
 
-    fun createPlayer(){
+    private fun createPlayer(){
         val bandwidthMeter = DefaultBandwidthMeter()
         val videoTrackSelectionFactory = AdaptiveTrackSelection.Factory(bandwidthMeter)
         val trackSelector = DefaultTrackSelector(videoTrackSelectionFactory)
         player = ExoPlayerFactory.newSimpleInstance(this, trackSelector)
     }
 
-    fun preparePlayer(){
+    private fun preparePlayer(){
         val bandwidthMeter = DefaultBandwidthMeter()
         val dataSourceFactory = DefaultDataSourceFactory(this,
                 Util.getUserAgent(this, "SOCIALCOPS"), bandwidthMeter)
         val extractorsFactory = DefaultExtractorsFactory()
         val videoSource = ExtractorMediaSource(Uri.parse(proxyVideoUrl),
                 dataSourceFactory, extractorsFactory, null, null)
-        player?.setPlayWhenReady(true)
+        player?.playWhenReady = true
         player?.prepare(videoSource)
     }
 
-    fun playerListener(){
+    private fun playerListener(){
        player?.addListener(object : Player.EventListener{
             override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
                 Log.d("amit", "playbackParameters" + playbackParameters)
@@ -141,7 +141,7 @@ class MainActivity : AppCompatActivity() {
         player?.release()
     }
 
-    fun isConnected() : Boolean{
+    private fun isConnected() : Boolean{
         val cm = SocialCops_Application.getInstance()?.getApplicationContext()
                 ?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork = cm.activeNetworkInfo
