@@ -19,6 +19,9 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import kotlinx.android.synthetic.main.activity_main.*
+import android.provider.OpenableColumns
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,8 +34,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         proxyCacheServer = SocialCops_Application.getCacheServer()
-        videoUrl = resources.getString(R.string.video_url)
+        videoUrl = resources.getString(R.string.video_url2)
         proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
+        Log.d("file name", getFileName(Uri.parse(proxyVideoUrl)))
     }
 
     override fun onResume() {
@@ -134,4 +138,27 @@ class MainActivity : AppCompatActivity() {
         val activeNetwork = cm.activeNetworkInfo
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting
     }
+
+    fun getFileName(uri: Uri): String {
+        var result: String? = null
+        if (uri.scheme == "content") {
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                }
+            } finally {
+                cursor!!.close()
+            }
+        }
+        if (result == null) {
+            result = uri.path
+            val cut = result!!.lastIndexOf('/')
+            if (cut != -1) {
+                result = result.substring(cut + 1)
+            }
+        }
+        return result
+    }
+
 }
