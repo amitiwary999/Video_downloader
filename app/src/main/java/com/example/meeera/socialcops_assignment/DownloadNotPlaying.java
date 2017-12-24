@@ -64,6 +64,8 @@ public class DownloadNotPlaying extends AppCompatActivity {
                             + " " + httpURLConnection.getResponseMessage());
 
                 }
+                int size = httpURLConnection.getContentLength();
+                Log.e("amit","size "+httpURLConnection.getContentLength());
                 outPutFile = new File(direc, fileName +".mp4");
                 if(!outPutFile.exists()){
                     outPutFile.createNewFile();
@@ -74,8 +76,13 @@ public class DownloadNotPlaying extends AppCompatActivity {
                 InputStream inputStream = httpURLConnection.getInputStream();
                 byte[] buffer = new byte[1024];
                 int lenght;
+                int sizeCount = 0;
                 while((lenght = inputStream.read(buffer))!=-1){
                     fileOutputStream.write(buffer, 0, lenght);
+                    if(size>0){
+                        sizeCount = sizeCount+lenght;
+                        Log.e("amit", "percentage "+((float)sizeCount/size)*100);
+                    }
                 }
                 inputStream.close();
                 fileOutputStream.close();
