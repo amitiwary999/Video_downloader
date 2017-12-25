@@ -10,9 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -83,13 +81,16 @@ public class DownloadNotPlaying extends AppCompatActivity {
         exoPlayer.setPlayer(player);
         preparePlayer();
         initPlayerListner();
+        MediaSource videoSource;
         File flag = new File(direc, fileName+".mp4");
         if(flag.exists()){
             download.setText("downloaded");
-            MediaSource videoSource = new ExtractorMediaSource(Uri.fromFile(flag),
+            videoSource = new ExtractorMediaSource(Uri.fromFile(flag),
                     dataSourceFactory, extractorsFactory, null, null);
             player.prepare(videoSource);
         } else {
+            videoSource = new ExtractorMediaSource(Uri.parse(videoURl), dataSourceFactory, extractorsFactory, null, null);
+            player.prepare(videoSource);
             download.setText("download");
             Log.e("amit", "downloading");
             download.setOnClickListener(new View.OnClickListener() {
@@ -234,12 +235,6 @@ public class DownloadNotPlaying extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            if(outPutFile!=null){
-                outFile = outPutFile;
-                MediaSource videoSource = new ExtractorMediaSource(Uri.fromFile(outFile),
-                        dataSourceFactory, extractorsFactory, null, null);
-                player.prepare(videoSource);
-            }
         }
 
         @Override
