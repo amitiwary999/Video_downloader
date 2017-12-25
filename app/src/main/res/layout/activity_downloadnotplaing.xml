@@ -2,11 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-<VideoView
-    android:layout_width="match_parent"
-    android:layout_height="300dp"
-    android:id="@+id/videoview"/>
 
+    <com.google.android.exoplayer2.ui.SimpleExoPlayerView
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:id="@+id/playerView">
+    </com.google.android.exoplayer2.ui.SimpleExoPlayerView>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
