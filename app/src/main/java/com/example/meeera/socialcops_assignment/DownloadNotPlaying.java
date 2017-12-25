@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.VideoView;
 
 import java.io.File;
@@ -26,11 +27,13 @@ public class DownloadNotPlaying extends AppCompatActivity {
     public Context context;
     public File outFile, direc;
     public String fileName;
+    public TextView txtView;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_downloadnotplaing);
         videoView = (VideoView)findViewById(R.id.videoview);
+        txtView = (TextView)findViewById(R.id.perc);
         context = this;
         ContextWrapper contextWrapper = new ContextWrapper(context);
         direc = contextWrapper.getDir("vidDir", Context.MODE_PRIVATE);
@@ -44,6 +47,18 @@ public class DownloadNotPlaying extends AppCompatActivity {
             Log.e("amit", "downloading");
             startDownloading();
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("amit", "downloadnotplaying    onPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d("amit", "downloadnotplaying    onStop");
     }
 
     public void startDownloading(){
@@ -82,6 +97,7 @@ public class DownloadNotPlaying extends AppCompatActivity {
                     if(size>0){
                         sizeCount = sizeCount+lenght;
                         Log.e("amit", "percentage "+((float)sizeCount/size)*100);
+                        publishProgress(" "+(int)(((float)sizeCount/size)*100));
                     }
                 }
                 inputStream.close();
@@ -105,6 +121,17 @@ public class DownloadNotPlaying extends AppCompatActivity {
                 outFile = outPutFile;
                 videoView.setVideoURI(Uri.fromFile(outFile));
                 videoView.start();
+            }
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+            Log.e("perc", values[0]);
+            if(values[0].equals(" 100")){
+                txtView.setText("downloaded");
+            }else {
+                txtView.setText(values[0]);
             }
         }
     }
