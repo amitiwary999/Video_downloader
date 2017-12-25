@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -51,7 +53,7 @@ public class DownloadNotPlaying extends AppCompatActivity {
     public Context context;
     public File outFile, direc;
     public String fileName;
-    public TextView txtView;
+    public Button download;
     public SimpleExoPlayerView exoPlayer;
     public SimpleExoPlayer player;
     public DataSource.Factory dataSourceFactory;
@@ -60,7 +62,7 @@ public class DownloadNotPlaying extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_downloadnotplaing);
-        txtView = (TextView)findViewById(R.id.perc);
+        download = (Button) findViewById(R.id.perc);
         exoPlayer = (SimpleExoPlayerView) findViewById(R.id.playerView);
     }
 
@@ -83,13 +85,19 @@ public class DownloadNotPlaying extends AppCompatActivity {
         initPlayerListner();
         File flag = new File(direc, fileName+".mp4");
         if(flag.exists()){
-            txtView.setText("downloaded");
+            download.setText("downloaded");
             MediaSource videoSource = new ExtractorMediaSource(Uri.fromFile(flag),
                     dataSourceFactory, extractorsFactory, null, null);
             player.prepare(videoSource);
         } else {
+            download.setText("download");
             Log.e("amit", "downloading");
-            startDownloading();
+            download.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startDownloading();
+                }
+            });
         }
     }
 
@@ -206,7 +214,7 @@ public class DownloadNotPlaying extends AppCompatActivity {
                     if(size>0){
                         sizeCount = sizeCount+lenght;
                         Log.e("amit", "percentage "+((float)sizeCount/size)*100);
-                        publishProgress(" "+(int)(((float)sizeCount/size)*100));
+                        publishProgress((int)(((float)sizeCount/size)*100)+"%");
                     }
                 }
                 inputStream.close();
@@ -238,10 +246,10 @@ public class DownloadNotPlaying extends AppCompatActivity {
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
             Log.e("perc", values[0]);
-            if(values[0].equals(" 100")){
-                txtView.setText("downloaded");
+            if(values[0].equals("100%")){
+                download.setText("downloaded");
             }else {
-                txtView.setText(values[0]);
+                download.setText(values[0]);
             }
         }
     }

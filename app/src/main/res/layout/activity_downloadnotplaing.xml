@@ -8,7 +8,7 @@
         android:layout_height="300dp"
         android:id="@+id/playerView">
     </com.google.android.exoplayer2.ui.SimpleExoPlayerView>
-    <TextView
+    <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
