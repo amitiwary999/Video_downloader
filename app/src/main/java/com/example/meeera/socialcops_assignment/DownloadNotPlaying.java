@@ -8,7 +8,33 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.VideoView;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.LoadControl;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.extractor.ExtractorsFactory;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
+import com.google.android.exoplayer2.trackselection.TrackSelector;
+import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,29 +47,136 @@ import java.net.URL;
  */
 
 public class DownloadNotPlaying extends AppCompatActivity {
-    private VideoView videoView;
     public String videoURl;
     public Context context;
     public File outFile, direc;
     public String fileName;
+    public Button download;
+    public SimpleExoPlayerView exoPlayer;
+    public SimpleExoPlayer player;
+    public DataSource.Factory dataSourceFactory;
+    ExtractorsFactory extractorsFactory;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_downloadnotplaing);
-        videoView = (VideoView)findViewById(R.id.videoview);
+        download = (Button) findViewById(R.id.perc);
+        exoPlayer = (SimpleExoPlayerView) findViewById(R.id.playerView);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         context = this;
         ContextWrapper contextWrapper = new ContextWrapper(context);
         direc = contextWrapper.getDir("vidDir", Context.MODE_PRIVATE);
         videoURl = getResources().getString(R.string.video_url);
         fileName = getFileName(videoURl);
+        start();
+
+    }
+
+    public void start(){
+        createPlayer();
+        exoPlayer.setPlayer(player);
+        preparePlayer();
+        initPlayerListner();
+        MediaSource videoSource;
         File flag = new File(direc, fileName+".mp4");
         if(flag.exists()){
-            videoView.setVideoURI(Uri.fromFile(flag));
-            videoView.start();
+            download.setText("downloaded");
+            videoSource = new ExtractorMediaSource(Uri.fromFile(flag),
+                    dataSourceFactory, extractorsFactory, null, null);
+            player.prepare(videoSource);
         } else {
+            videoSource = new ExtractorMediaSource(Uri.parse(videoURl), dataSourceFactory, extractorsFactory, null, null);
+            player.prepare(videoSource);
+            download.setText("download");
             Log.e("amit", "downloading");
-            startDownloading();
+            download.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startDownloading();
+                }
+            });
         }
+    }
+
+    public void createPlayer(){
+        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+        TrackSelection.Factory track =  new AdaptiveTrackSelection.Factory(bandwidthMeter);
+        TrackSelector trackSelector = new DefaultTrackSelector(track);
+        LoadControl loadControl = new DefaultLoadControl();
+        player = ExoPlayerFactory.newSimpleInstance(this, trackSelector, loadControl);
+    }
+
+    public void preparePlayer(){
+        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+        dataSourceFactory = new DefaultDataSourceFactory(this,
+                Util.getUserAgent(this, "OfflinePlayer"), bandwidthMeter);
+        extractorsFactory = new DefaultExtractorsFactory();
+        player.setPlayWhenReady(true);
+    }
+
+    private void initPlayerListner() {
+        player.addListener(new ExoPlayer.EventListener() {
+            @Override
+            public void onTimelineChanged(Timeline timeline, Object manifest) {
+
+            }
+
+            @Override
+            public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+
+            }
+
+            @Override
+            public void onLoadingChanged(boolean isLoading) {
+
+            }
+
+            @Override
+            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+
+            }
+
+            @Override
+            public void onRepeatModeChanged(int repeatMode) {
+
+            }
+
+            @Override
+            public void onPlayerError(ExoPlaybackException error) {
+                Toast.makeText(DownloadNotPlaying.this,R.string.error, Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onPositionDiscontinuity() {
+
+            }
+
+            @Override
+            public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+
+            }
+        });
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("amit", "downloadnotplaying    onPause");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        player.setPlayWhenReady(true);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d("amit", "downloadnotplaying    onStop");
     }
 
     public void startDownloading(){
@@ -82,6 +215,7 @@ public class DownloadNotPlaying extends AppCompatActivity {
                     if(size>0){
                         sizeCount = sizeCount+lenght;
                         Log.e("amit", "percentage "+((float)sizeCount/size)*100);
+                        publishProgress((int)(((float)sizeCount/size)*100)+"%");
                     }
                 }
                 inputStream.close();
@@ -101,10 +235,16 @@ public class DownloadNotPlaying extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            if(outPutFile!=null){
-                outFile = outPutFile;
-                videoView.setVideoURI(Uri.fromFile(outFile));
-                videoView.start();
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+            Log.e("perc", values[0]);
+            if(values[0].equals("100%")){
+                download.setText("downloaded");
+            }else {
+                download.setText(values[0]);
             }
         }
     }
