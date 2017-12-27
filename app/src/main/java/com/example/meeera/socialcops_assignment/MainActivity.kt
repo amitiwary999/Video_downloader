@@ -34,7 +34,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         proxyCacheServer = SocialCops_Application.getCacheServer()
-        videoUrl = resources.getString(R.string.video_url2)
+        if(intent.extras != null) {
+            //videoUrl = resources.getString(R.string.video_url2)
+            videoUrl = intent.extras.getString("url")
+        }
         proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
         Log.d("file name", getFileName(Uri.parse(proxyVideoUrl)))
     }
