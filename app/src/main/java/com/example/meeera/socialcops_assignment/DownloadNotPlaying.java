@@ -49,7 +49,7 @@ import java.net.URL;
 public class DownloadNotPlaying extends AppCompatActivity {
     public String videoURl;
     public Context context;
-    public File outFile, direc;
+    public File  direc;
     public String fileName;
     public Button download;
     public SimpleExoPlayerView exoPlayer;
@@ -70,9 +70,14 @@ public class DownloadNotPlaying extends AppCompatActivity {
         context = this;
         ContextWrapper contextWrapper = new ContextWrapper(context);
         direc = contextWrapper.getDir("vidDir", Context.MODE_PRIVATE);
-        videoURl = getResources().getString(R.string.video_url);
-        fileName = getFileName(videoURl);
-        start();
+        if(getIntent().getExtras() != null) {
+            videoURl = getIntent().getExtras().getString("url");
+            Log.d("url name", "url "+videoURl);
+            fileName = getFileName(videoURl);
+            start();
+        }else{
+            Log.d("url name", "error");
+        }
 
     }
 

@@ -34,9 +34,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         proxyCacheServer = SocialCops_Application.getCacheServer()
-        videoUrl = resources.getString(R.string.video_url2)
-        proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
-        Log.d("file name", getFileName(Uri.parse(proxyVideoUrl)))
     }
 
     override fun onResume() {
@@ -47,7 +44,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        start()
+        if(intent.extras != null) {
+            videoUrl = intent.extras.getString("url")
+            proxyVideoUrl = proxyCacheServer?.getProxyUrl(videoUrl, true)
+            Log.d("file name", getFileName(Uri.parse(proxyVideoUrl)))
+            start()
+        } else{
+            Toast.makeText(this, "url is not correct", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun start(){
