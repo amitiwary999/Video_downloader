@@ -71,7 +71,6 @@ public class DownloadNotPlaying extends AppCompatActivity {
         ContextWrapper contextWrapper = new ContextWrapper(context);
         direc = contextWrapper.getDir("vidDir", Context.MODE_PRIVATE);
         if(getIntent().getExtras() != null) {
-            //videoURl = getResources().getString(R.string.video_url);
             videoURl = getIntent().getExtras().getString("url");
             Log.d("url name", "url "+videoURl);
             fileName = getFileName(videoURl);
